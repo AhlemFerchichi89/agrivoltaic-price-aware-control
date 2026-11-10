@@ -15,4 +15,4 @@ systems in southern Spain", Solar Energy 316, 114845 (CC BY).
 * Sheet `Site geometry (Fig S1)`: layout of the installation.
 
 Lettuce yields per treatment (Table 5 of project deliverable D2.2) are in `config.yaml`.
-The 15-minute raw measurements are not public and were requested from the authors.
+
