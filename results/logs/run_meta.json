@@ -1,0 +1,15 @@
+{
+ "python": "3.13.17",
+ "platform": "Linux-6.18.44-fc-v185-x86_64-with-glibc2.39",
+ "numpy": "2.5.3",
+ "steps": [
+  "forecast",
+  "microclimate",
+  "crop",
+  "water",
+  "main",
+  "figures"
+ ],
+ "quick": false,
+ "runtime_min": 1.94
+}

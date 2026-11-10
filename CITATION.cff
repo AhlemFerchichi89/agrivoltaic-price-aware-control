@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite the paper."
+title: "Forecast-driven agrivoltaic tilt control under heatwaves: code and data"
+authors:
+  - family-names: Ferchichi
+    given-names: Ahlem
+    affiliation: "Applied College, University of Ha'il"
+license: MIT
+version: 1.0.0
+date-released: 2026-11-01
+repository-code: "<repository-url>"
+preferred-citation:
+  type: article
+  title: "[paper title]"
+  authors:
+    - family-names: Ferchichi
+      given-names: Ahlem
+  journal: Energy
+  year: 2026

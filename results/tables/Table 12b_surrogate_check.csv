@@ -1,0 +1,2 @@
+holdout_R2,holdout_RMSE,kernel
+0.9908932502120559,16.25874119907452,"6.89**2 * Matern(length_scale=[4.26, 15.9, 6.52], nu=2.5) + WhiteKernel(noise_level=1e-05)"

@@ -1,0 +1,173 @@
+# =============================================================================
+# Forecast-driven agrivoltaic tilt control under heatwaves: configuration
+# Every number used by the pipeline lives here. Values marked [field] come from
+# the Seville DLR / University of Seville experiment (Fernandez Solas et al.,
+# 2026, Solar Energy 316, 114845, and project deliverable D2.2); [lit] are
+# literature values; [assump] are modelling assumptions that are varied in the
+# sensitivity analysis.
+# =============================================================================
+seed: 42
+results_dir: results
+
+# ----------------------------------------------------------------------------- data
+data:
+  omie_prices: data/raw/OMIE_Spain_hourly_prices_May-Sep_2015-2025.xlsx
+  cmip6: data/raw/CMIP6_Seville_Almeria_2005-2024_2041-2050.xlsx
+  field_digitized: data/field/DLR_Seville_FigS3_digitized.xlsx
+  wind_units: kmh            # Open-Meteo default; set to ms if downloaded in m/s
+
+sites:
+  seville:                   # calibration + main validation site
+    lat: 37.39
+    lon: -5.98
+    tz: Europe/Madrid
+    era5: data/raw/era5_seville_hourly_2015_2025.csv
+    ecmwf: data/raw/ECMWF_previous_runs_seville_2024-09_2025-07.xlsx
+    cmip6_prefix: seville
+    price: omie
+    water_price_eur_m3: 0.15     # [assump] surface irrigation water
+  almeria:                   # transfer site (same market, hotter/drier coast)
+    lat: 36.84
+    lon: -2.46
+    tz: Europe/Madrid
+    era5: data/raw/era5_almeria_hourly_2015_2025.csv
+    ecmwf: null              # synthetic forecasts from the Seville error library
+    cmip6_prefix: almeria
+    price: omie
+    water_price_eur_m3: 0.53     # desalinated seawater price reported for Almeria agriculture (HortiDaily, 2018)
+  hail:                      # transfer site: hot desert, no hourly market (flat tariff)
+    lat: 27.52
+    lon: 41.69
+    tz: Asia/Riyadh
+    era5: data/raw/era5_hail_hourly_2015_2025.csv
+    ecmwf: null              # synthetic forecasts from the Seville error library
+    cmip6_prefix: null
+    price: flat
+    flat_price_eur_mwh: 45.0 # [assump] ~0.18 SAR/kWh; set to the SEC tariff you use
+    water_price_eur_m3: 0.30     # [assump] pumped fossil groundwater (energy + scarcity value)
+    season: ["02-15", "04-15"]   # [assump] lettuce in Ha'il is a cool-season crop
+
+main_site: seville
+years: [2015, 2025]
+
+# ----------------------------------------------------------------------------- field experiment
+field:
+  tilt_lettuce_deg: 50        # [field/assump] D2.2 reports a "large tilt (50 deg)"; varied in validation
+  cycles:                     # [field]
+    fall_2024: ["2024-09-19", "2024-12-03"]
+    spring_2025: ["2025-05-10", "2025-06-27"]
+  yield_t_ha:                 # [field] Table 5 of D2.2
+    fall_2024: {control: 31.5, apv: 23.7, rdi: 28.8}
+    spring_2025: {control: 22.8, apv: 20.6, rdi: 18.7}
+  irrigation_mm:              # [field] D2.2 Table 5
+    fall_2024: {control: 117.1, apv: 74.9, rdi: 71.3}
+    spring_2025: {control: 329.8, apv: 214.3, rdi: 254.1}
+  plant_density_m2: 6.67      # [assump] double rows 0.4 m apart, 0.2 m in row, beds 1.5 m
+
+# ----------------------------------------------------------------------------- system geometry and PV
+system:
+  height_m: 3.0               # [field]
+  pitch_m: 4.5                # [field] N-S distance between panel strips
+  gcr: 0.32                   # [field] panel width = gcr * pitch
+  tilt_min: 0                 # [field]
+  tilt_max: 65                # [field]
+  tilt_step: 1
+  kwp_per_ha: 714             # [field] 13.5 kWp over 3 x 63 m2
+  albedo: 0.20
+  gamma_pmp: -0.004           # [lit] 1/K
+  inverter_eff: 0.98
+  other_losses: 0.05          # wiring, mismatch, soiling (spring)
+  iam_b0: 0.05                # ASHRAE incidence-angle modifier
+  faiman_u0: 25.0             # W m-2 K-1
+  faiman_u1: 6.84             # W m-2 K-1 per m s-1
+  canopy_cooling_C: 10.2      # [lit] Hosseini et al. 2026: peak module cooling over crop (10.2 C),
+                              # scaled by POA/1000 so the daytime mean is ~5-6 C (reported 5.6 C)
+  n_ground_points: 60         # resolution of the sky-view-factor integral
+
+# ----------------------------------------------------------------------------- economics
+economics:
+  imbalance_eur_mwh: 10.0     # [assump] symmetric cost of deviating from the day-ahead schedule
+  pv_reference_kwp_per_ha: 1000   # [assump] conventional ground-mounted PV for the LER
+  pv_reference_tilt_deg: 30
+  stress_day_from: air_tmax   # stress-day definition for the S4 / S5 rules
+
+# ----------------------------------------------------------------------------- water
+water:
+  price_eur_m3: 0.15          # [assump] default irrigation water price (Guadalquivir surface water)
+  rain_efficiency: 0.8        # effective share of rainfall
+  calibrate_on: spring_2025   # k_w fitted on this cycle's control irrigation; the other totals validate
+
+# ----------------------------------------------------------------------------- crop and leaf
+crops:
+  lettuce:
+    season: ["05-10", "06-27"]   # [field] spring-summer cycle dates, applied to every year
+    t_crit_C: 30.0               # [lit] onset of heat damage (tipburn, bolting)
+    stress_on: leaf              # leaf | air
+    stress_day_tmax_C: 35.0      # [assump] air Tmax that defines a "stress day" for S4 / S5
+    lambda: {low: 0.0, central: calibrate, high: 0.001}  # yield loss per degC.h of leaf heat stress;
+                                 # central = identified jointly with alpha from the two Seville cycles,
+                                 # high = heat-sensitive crop / literature-type value
+    price_eur_kg: 0.50           # [lit] Spanish farm-gate lettuce
+    alpha_light: calibrate       # calibrated on Table 5 (APV vs control) or a number
+    y_ref_t_ha: 22.8             # [field] spring 2025 control yield
+    y_ref_year: 2025
+    kc: 0.90                     # FAO-56 seasonal mean crop coefficient
+  tomato:                        # heat-sensitive case study (processing tomato, Seville); literature-based, not field-calibrated
+    season: ["04-15", "07-31"]   # [assump] typical transplant-harvest window of processing tomato in the Guadalquivir valley
+    t_crit_C: 35.0               # [lit] fruit set fails above about 35 C
+    stress_on: leaf
+    stress_day_tmax_C: 38.0
+    lambda: {low: 0.0005, central: 0.001, high: 0.002}   # [assump] heat-sensitive crop; varied in T15c
+    price_eur_kg: 0.10           # [assump] processing tomato contract price; fresh-market scenario 0.60 in T15b
+    price_fresh_eur_kg: 0.60
+    alpha_light: 0.70            # [assump] light-demanding fruit crop
+    y_ref_t_ha: 90.0             # [assump] typical open-field processing tomato yield in Andalusia
+    y_ref_year: 2024
+    kc: 1.00                     # FAO-56 seasonal mean crop coefficient
+
+main_crop: lettuce
+
+leaf:                          # Campbell & Norman (1998), ch. 7 and 14
+  width_m: 0.10
+  gs_max_mol: 0.40             # maximum stomatal conductance, mol m-2 s-1
+  d0_kpa: 1.5                  # VPD sensitivity of stomata
+  abs_sw: 0.50                 # absorptivity for total shortwave
+  emissivity: 0.97
+  crop_height_m: 0.30
+  z0_m: 0.03
+
+# ----------------------------------------------------------------------------- strategies
+strategies:
+  s1_tilt_deg: 20              # [field] tilt used in the 2024 tomato trial
+  s3_fmax: 0.20                # max beam shading fraction for light sharing
+  p_star: 0.50                 # decision threshold on forecast stress probability
+  protect_window_local: [11, 19]   # local clock hours in which S4/S5 protect
+  p_star_grid: [0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95]
+  crop_weight_grid: [0, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 5, 8, 12]
+
+# ----------------------------------------------------------------------------- forecasting
+forecast:
+  leads: [1, 2, 3]
+  decision_lead: 1
+  quantiles: [0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95]
+  climatology_years: [2015, 2023]
+  climatology_window_days: 7
+  n_synthetic: 20              # forecast realisations per season for years without archived forecasts
+  synthetic_window_days: 30
+
+# ----------------------------------------------------------------------------- climate change
+climate:
+  models: [EC_Earth3P_HR, MPI_ESM1_2_XR, CMCC_CM2_VHR4]
+  hist: [2005, 2024]
+  future: [2041, 2050]
+  price_years_for_future: [2023, 2024, 2025]
+
+# ----------------------------------------------------------------------------- sensitivity
+sensitivity:
+  t_crit_delta: [-2, 2]
+  crop_price_factor: [0.5, 1.5]
+  price_periods: {"2015-2020": [2015, 2020], "2021-2022": [2021, 2022], "2023-2025": [2023, 2025]}
+  pitch_m: [3.5, 5.5]
+  height_m: []                 # panel height has no effect for infinite rows (2-D model); set e.g. [2.5, 4.0] to verify
+  surrogate_runs: 80
+  surrogate_holdout: 20

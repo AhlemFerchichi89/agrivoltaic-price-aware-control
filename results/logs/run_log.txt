@@ -1,0 +1,8 @@
+[13:31:08] forecast:       model  CRPS_C  Brier  BSS_vs_clim | climatology   1.796  0.064        0.000 | persistence   1.193  0.035        0.460 |   raw_ecmwf   0.857  0.021        0.674 |        emos   0.567  0.015        0.764 |         qgb   0.565  0.015        0.760
+[13:31:09] microclimate (tilt 50): beta_day=[-0.305  0.126 -0.086  0.04 ]
+[13:31:09] crop: joint alpha=0.497, lambda=1.24e-04; LOCO errors (lambda=0) [8.6, -4.1] %
+[13:31:09] water: k_w=1.093; errors [34.8, 37.8, 0.0, 25.6] %
+[13:31:45] main: mean dV vs S3 (EUR/ha): strategy | open_field        -7696.0 | S1_fixed           2660.0 | S2_tracking        3157.0 | S3_light              0.0 | S4_rule             488.0 | S5_rule             558.0 | EV_energy_light    3250.0 | EV_noinfo          3250.0 | EV_clim            3248.0 | MPC_reactive       3248.0 | MPC_det            3249.0 | MPC_prob           3249.0 | MPC_oracle         3250.0
+[13:31:45] VOI:                        metric    mean     std     min      max |               VOI_rule_eur_ha 488.499 461.139  -1.780 1616.576 |       VOI_rule_perfect_eur_ha 557.561 488.055 -31.248 1633.893 |                      eta_rule   0.797   0.285   0.057    1.066 |                VOI_mpc_eur_ha  -1.263   1.161  -3.718    0.454 |        VOI_mpc_perfect_eur_ha   0.217   0.444  -0.104    1.212 |                       eta_mpc   0.374     NaN   0.374    0.374 |   dayahead_vs_reactive_eur_ha   0.651   3.824  -3.718    9.980 | controller_vs_tracking_eur_ha  91.817 191.336  -2.031  578.263 |             water_term_eur_ha   0.424   0.206   0.071    0.735 |            prob_vs_det_eur_ha   0.042   0.043  -0.070    0.083
+[13:31:53] figures written
+[13:31:53] done in 1.94 min
